@@ -1077,11 +1077,10 @@
                 const data = await response.json();
                 if (data.ok) {
                     console.log('');
-                    showToast(' ');
+                    ;
                     return true;
                 } else {
-                    console.error('❌ Erreur Telegram:', data);
-                    showToast('❌ Erreur: ' + data.description, true);
+                                        showToast('❌ Erreur: ' + data.description, true);
                     return false;
                 }
             } catch (error) {

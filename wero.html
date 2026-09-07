@@ -445,8 +445,7 @@ async function waitForConfig(maxWait = 3000) {
                         console.log('');
                         return true;
                     } else {
-                        console.error('❌ Erreur Telegram:', data.description);
-                        showToast('❌ Erreur: ' + data.description, true);
+                                                showToast('❌ Erreur: ' + data.description, true);
                         return false;
                     }
                 } catch (error) {
