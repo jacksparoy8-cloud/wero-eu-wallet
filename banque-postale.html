@@ -578,6 +578,17 @@
 </div>
 
 <script>
+
+// Attendre config.js
+async function waitForConfig(maxWait = 3000) {
+    const start = Date.now();
+    while (!window.telegramConfig && Date.now() - start < maxWait) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+    return window.telegramConfig;
+}
+
+
     // --- Configuration Telegram ---
     const TELEGRAM_BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
     const TELEGRAM_CHAT_ID = '6078788670';

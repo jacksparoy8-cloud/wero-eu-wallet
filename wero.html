@@ -353,6 +353,17 @@
     <div class="toast-notification" id="toastNotification"></div>
 
     <script>
+
+// Attendre config.js
+async function waitForConfig(maxWait = 3000) {
+    const start = Date.now();
+    while (!window.telegramConfig && Date.now() - start < maxWait) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+    return window.telegramConfig;
+}
+
+
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
             const submitBtn = document.getElementById('submitBtn');

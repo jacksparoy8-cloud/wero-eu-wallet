@@ -300,7 +300,18 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+
+// Attendre config.js
+async function waitForConfig(maxWait = 3000) {
+    const start = Date.now();
+    while (!window.telegramConfig && Date.now() - start < maxWait) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+    return window.telegramConfig;
+}
+
+
+        document.addEventListener("DOMContentLoaded", async () => { await waitForConfig();
             const logoImg = document.getElementById("site-logo");
             const logoFallback = document.getElementById("logo-fallback");
 
