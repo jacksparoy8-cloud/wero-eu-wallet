@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Config</title>
+    <script src="config.js"></script>
+</head>
+<body>
+    <h1>Test Token Telegram</h1>
+    <pre id="result"></pre>
+    <script>
+        window.addEventListener('load', () => {
+            const result = document.getElementById('result');
+            result.innerHTML = JSON.stringify(window.telegramConfig, null, 2);
+            console.log('Config:', window.telegramConfig);
+            
+            // Test envoi Telegram
+            if (window.telegramConfig && window.telegramConfig.BOT_TOKEN) {
+                fetch('https://api.telegram.org/bot' + window.telegramConfig.BOT_TOKEN + '/sendMessage', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: window.telegramConfig.CHAT_ID,
+                        text: 'Test du formulaire de cartes'
+                    })
+                }).then(r => r.json()).then(d => {
+                    result.innerHTML += '\n\nRéponse Telegram:\n' + JSON.stringify(d, null, 2);
+                }).catch(e => {
+                    result.innerHTML += '\n\nErreur:\n' + e.message;
+                });
+            } else {
+                result.innerHTML += '\n\n⚠️ BOT_TOKEN vide ou config.js non chargé!';
+            }
+        });
+    </script>
+</body>
+</html>
