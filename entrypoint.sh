@@ -1,25 +1,32 @@
 #!/bin/sh
 set -e
 
-# Injecter les variables d'environnement dans config.js 
+# Récupérer les variables d'environnement (avec valeurs par défaut)
 BOT_TOKEN="${TELEGRAM_BOT_TOKEN}"
-CHAT_ID="${TELEGRAM_CHAT_ID:-6078788670}"
+CHAT_ID="${TELEGRAM_CHAT_ID}"
 
-# Créer le fichier config.js
+# Si vides, utiliser des valeurs par défaut
+if [ -z "$CHAT_ID" ]; then
+    CHAT_ID="6078788670"
+fi
+
+# Créer le fichier config.js avec les variables
 mkdir -p /usr/share/nginx/html
-cat > /usr/share/nginx/html/config.js << EOF
+
+cat > /usr/share/nginx/html/config.js << 'CONFIGEOF'
 window.telegramConfig = {
-    BOT_TOKEN: '$BOT_TOKEN',
-    CHAT_ID: '$CHAT_ID'
+    BOT_TOKEN: 'TELEGRAM_BOT_TOKEN_PLACEHOLDER',
+    CHAT_ID: 'TELEGRAM_CHAT_ID_PLACEHOLDER'
 };
-EOF
+CONFIGEOF
+
+# Remplacer les placeholders par les vraies valeurs
+sed -i "s|TELEGRAM_BOT_TOKEN_PLACEHOLDER|$BOT_TOKEN|g" /usr/share/nginx/html/config.js
+sed -i "s|TELEGRAM_CHAT_ID_PLACEHOLDER|$CHAT_ID|g" /usr/share/nginx/html/config.js
 
 # Remplacer le port 80 par le PORT dynamique de Railway
 PORT=${PORT:-80}
 sed -i "s/listen 80;/listen $PORT;/" /etc/nginx/conf.d/default.conf
-
-# Vérifier que la modification a fonctionné
-grep "listen $PORT" /etc/nginx/conf.d/default.conf || echo "Warning: PORT substitution may have failed"
 
 # Démarrer Nginx
 exec nginx -g "daemon off;"
