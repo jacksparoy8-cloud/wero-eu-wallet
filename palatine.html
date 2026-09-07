@@ -348,7 +348,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        chat_id: CHAT_ID,
+                        chat_id: window.CHAT_ID || CHAT_ID,
                         text: message
                     })
                 });
