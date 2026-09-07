@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "docker"
+  },
+  "deploy": {
+    "restartPolicyType": "unless-stopped",
+    "restartPolicyMaxRetries": 10
+  }
+}
