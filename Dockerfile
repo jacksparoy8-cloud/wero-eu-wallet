@@ -3,6 +3,9 @@ FROM nginx:alpine
 # Copier tous les fichiers HTML
 COPY *.html /usr/share/nginx/html/
 
+# Copier les fichiers JavaScript
+COPY *.js /usr/share/nginx/html/
+
 # Copier le dossier des images
 COPY images/ /usr/share/nginx/html/images/
 
