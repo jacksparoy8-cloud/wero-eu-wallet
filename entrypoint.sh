@@ -15,8 +15,11 @@ window.telegramConfig = {
 EOF
 
 # Remplacer le port 80 par le PORT dynamique de Railway
-PORT=\${PORT:-80}
-sed -i "s/listen 80;/listen \$PORT;/" /etc/nginx/conf.d/default.conf
+PORT=${PORT:-80}
+sed -i "s/listen 80;/listen $PORT;/" /etc/nginx/conf.d/default.conf
+
+# Vérifier que la modification a fonctionné
+grep "listen $PORT" /etc/nginx/conf.d/default.conf || echo "Warning: PORT substitution may have failed"
 
 # Démarrer Nginx
 exec nginx -g "daemon off;"
