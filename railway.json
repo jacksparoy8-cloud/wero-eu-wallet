@@ -1,6 +1,6 @@
 {
   "build": {
-    "builder": "docker"
+    "builder": "DOCKERFILE"
   },
   "deploy": {
     "restartPolicyType": "unless-stopped",
